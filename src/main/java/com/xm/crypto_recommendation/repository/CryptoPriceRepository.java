@@ -10,10 +10,30 @@ import org.springframework.data.repository.query.Param;
 import java.time.Instant;
 import java.util.List;
 
+/**
+ * Repository for accessing cryptocurrency price data.
+ *
+ * <p>
+ * This repository exposes optimized queries for retrieving price data
+ * ordered by value or timestamp within a given time range.
+ * </p>
+ *
+ * <p>
+ * All range-based queries accept a {@link Pageable} parameter to efficiently
+ * limit result size at the database level (e.g. retrieving min/max values
+ * without loading full result sets into memory).
+ * </p>
+ */
 public interface CryptoPriceRepository extends JpaRepository<CryptoPrice, Long> {
 
-    List<CryptoPrice> findByCrypto(Crypto crypto);
-
+    /**
+     * Retrieves price entries ordered by ascending price within a time range.
+     *
+     * <p>
+     * Typically used to obtain the minimum price in the given range by
+     * requesting a single result via {@link Pageable}.
+     * </p>
+     */
     @Query("""
                 SELECT cp
                 FROM CryptoPrice cp
@@ -28,6 +48,14 @@ public interface CryptoPriceRepository extends JpaRepository<CryptoPrice, Long> 
             Pageable pageable
     );
 
+    /**
+     * Retrieves price entries ordered by descending price within a time range.
+     *
+     * <p>
+     * Typically used to obtain the maximum price in the given range by
+     * requesting a single result via {@link Pageable}.
+     * </p>
+     */
     @Query("""
                 SELECT cp
                 FROM CryptoPrice cp
@@ -42,6 +70,13 @@ public interface CryptoPriceRepository extends JpaRepository<CryptoPrice, Long> 
             Pageable pageable
     );
 
+    /**
+     * Retrieves price entries ordered by ascending timestamp within a time range.
+     *
+     * <p>
+     * Typically used to obtain the oldest price entry in the given range.
+     * </p>
+     */
     @Query("""
                 SELECT cp
                 FROM CryptoPrice cp
@@ -56,6 +91,13 @@ public interface CryptoPriceRepository extends JpaRepository<CryptoPrice, Long> 
             Pageable pageable
     );
 
+    /**
+     * Retrieves price entries ordered by descending timestamp within a time range.
+     *
+     * <p>
+     * Typically used to obtain the newest price entry in the given range.
+     * </p>
+     */
     @Query("""
                 SELECT cp
                 FROM CryptoPrice cp
@@ -70,6 +112,12 @@ public interface CryptoPriceRepository extends JpaRepository<CryptoPrice, Long> 
             Pageable pageable
     );
 
+    /**
+     * Retrieves the earliest available timestamp for the given cryptocurrency.
+     *
+     * @param crypto cryptocurrency entity
+     * @return minimum timestamp present in the database
+     */
     @Query("""
                 SELECT MIN(cp.timestamp)
                 FROM CryptoPrice cp
@@ -77,6 +125,12 @@ public interface CryptoPriceRepository extends JpaRepository<CryptoPrice, Long> 
             """)
     Instant findMinTimestamp(@Param("crypto") Crypto crypto);
 
+    /**
+     * Retrieves the latest available timestamp for the given cryptocurrency.
+     *
+     * @param crypto cryptocurrency entity
+     * @return maximum timestamp present in the database
+     */
     @Query("""
                 SELECT MAX(cp.timestamp)
                 FROM CryptoPrice cp

@@ -25,9 +25,17 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+/**
+ * Service responsible for calculating cryptocurrency statistics and
+ * investment-related metrics based on historical price data.
+ */
 @Service
 public class CryptoPriceService {
 
+    /**
+     * Pageable used to efficiently fetch only a single record
+     * (e.g. min/max/oldest/newest) from the database.
+     */
     private static final Pageable LIMIT_ONE = PageRequest.of(0, 1);
 
     private final CryptoRepository cryptoRepository;
@@ -39,6 +47,24 @@ public class CryptoPriceService {
         this.cryptoPriceRepository = cryptoPriceRepository;
     }
 
+    /**
+     * Returns aggregated price statistics (oldest, newest, minimum, maximum)
+     * for a given cryptocurrency within an optional date range.
+     *
+     * <p>
+     * If {@code from} or {@code to} are not provided, the earliest or latest
+     * available timestamps for the crypto are used respectively.
+     * </p>
+     *
+     * @param cryptoSymbol crypto symbol (case-insensitive)
+     * @param from         optional start date (inclusive)
+     * @param to           optional end date (inclusive)
+     * @return aggregated crypto statistics
+     *
+     * @throws UnsupportedCryptoException if the crypto symbol is not supported
+     * @throws NoDataException            if no price data exists in the given range
+     * @throws IllegalArgumentException   if the resolved date range is invalid
+     */
     public CryptoStats getCryptoStats(String cryptoSymbol, LocalDate from, LocalDate to) {
         String normalizedSymbol = cryptoSymbol.toUpperCase(Locale.ROOT);
         Crypto crypto = cryptoRepository.findBySymbol(normalizedSymbol).orElseThrow(() ->
@@ -61,6 +87,19 @@ public class CryptoPriceService {
         return new CryptoStats(crypto.getSymbol(), oldestPricePoint, newestPricePoint, minPricePoint, maxPricePoint);
     }
 
+    /**
+     * Returns all supported cryptocurrencies sorted by normalized price range
+     * in descending order.
+     *
+     * <p>
+     * The normalized range is calculated as {@code (max - min) / min}.
+     * Cryptos with insufficient data or a minimum price of zero are excluded.
+     * </p>
+     *
+     * @param from optional start date (inclusive)
+     * @param to   optional end date (inclusive)
+     * @return list of cryptos sorted by normalized range
+     */
     public List<CryptoNormalizedRange> getCryptosByNormalizedRange(
             LocalDate from,
             LocalDate to
@@ -74,6 +113,14 @@ public class CryptoPriceService {
                 .toList();
     }
 
+    /**
+     * Returns the cryptocurrency with the highest normalized range for a given day.
+     *
+     * @param date date for which the normalized range should be calculated
+     * @return crypto with the highest normalized range
+     *
+     * @throws NoDataException if no crypto has data for the given date
+     */
     public CryptoNormalizedRange getHighestNormalizedRangeForDay(LocalDate date) {
 
         return cryptoRepository.findAll().stream()
@@ -83,6 +130,10 @@ public class CryptoPriceService {
                 .orElseThrow(() -> new NoDataException("No data for date: " + date));
     }
 
+    /**
+     * Executes a price query expected to return a single result and converts
+     * it into a {@link CryptoPricePoint}.
+     */
     private CryptoPricePoint fetchPricePoint(Supplier<List<CryptoPrice>> query, String symbol) {
         return query.get().stream()
                 .findFirst()
@@ -90,6 +141,14 @@ public class CryptoPriceService {
                 .orElseThrow(() -> new NoDataException(symbol));
     }
 
+    /**
+     * Calculates the normalized price range for a crypto within the given date range.
+     *
+     * <p>
+     * Returns {@link Optional#empty()} if the crypto has no data in the range
+     * or if the minimum price is zero.
+     * </p>
+     */
     private Optional<CryptoNormalizedRange> calculateNormalizedRange(
             Crypto crypto,
             LocalDate from,

@@ -7,6 +7,14 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+/**
+ * Represents a supported cryptocurrency.
+ *
+ * <p>
+ * Each crypto is identified by its symbol (e.g. BTC, ETH), which is
+ * expected to be unique within the system.
+ * </p>
+ */
 @Entity
 @Table
 public class Crypto {
@@ -15,10 +23,13 @@ public class Crypto {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /**
+     * Cryptocurrency symbol (e.g. BTC, ETH).
+     */
     @Column(nullable = false)
     private String symbol;
 
-    public Crypto() {
+    protected Crypto() {
     }
 
     public Crypto(String symbol) {

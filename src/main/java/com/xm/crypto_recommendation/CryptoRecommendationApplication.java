@@ -5,6 +5,14 @@ import io.swagger.v3.oas.annotations.info.Info;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+/**
+ * Entry point for the Crypto Recommendation Service application.
+ *
+ * <p>
+ * Bootstraps the Spring Boot context and exposes the REST API documented
+ * via OpenAPI/Swagger.
+ * </p>
+ */
 @OpenAPIDefinition(
         info = @Info(
                 title = "Crypto Recommendation Service",
