@@ -21,7 +21,7 @@ public interface CryptoPriceRepository extends JpaRepository<CryptoPrice, Long> 
                   AND cp.timestamp BETWEEN :from AND :to
                 ORDER BY cp.price ASC, cp.timestamp ASC
             """)
-    List<CryptoPrice> findMinPrice(
+    List<CryptoPrice> findPricesInRangeOrderedByPriceAsc(
             @Param("crypto") Crypto crypto,
             @Param("from") Instant from,
             @Param("to") Instant to,
@@ -35,7 +35,7 @@ public interface CryptoPriceRepository extends JpaRepository<CryptoPrice, Long> 
                   AND cp.timestamp BETWEEN :from AND :to
                 ORDER BY cp.price DESC, cp.timestamp DESC
             """)
-    List<CryptoPrice> findMaxPrice(
+    List<CryptoPrice> findPricesInRangeOrderedByPriceDesc(
             @Param("crypto") Crypto crypto,
             @Param("from") Instant from,
             @Param("to") Instant to,
@@ -49,7 +49,7 @@ public interface CryptoPriceRepository extends JpaRepository<CryptoPrice, Long> 
                   AND cp.timestamp BETWEEN :from AND :to
                 ORDER BY cp.timestamp ASC
             """)
-    List<CryptoPrice> findOldestPrice(
+    List<CryptoPrice> findPricesInRangeOrderedByTimestampAsc(
             @Param("crypto") Crypto crypto,
             @Param("from") Instant from,
             @Param("to") Instant to,
@@ -63,7 +63,7 @@ public interface CryptoPriceRepository extends JpaRepository<CryptoPrice, Long> 
                   AND cp.timestamp BETWEEN :from AND :to
                 ORDER BY cp.timestamp DESC
             """)
-    List<CryptoPrice> findNewestPrice(
+    List<CryptoPrice> findPricesInRangeOrderedByTimestampDesc(
             @Param("crypto") Crypto crypto,
             @Param("from") Instant from,
             @Param("to") Instant to,

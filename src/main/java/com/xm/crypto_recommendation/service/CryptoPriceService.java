@@ -52,10 +52,10 @@ public class CryptoPriceService {
             );
         }
 
-        CryptoPricePoint oldestPricePoint = fetchPricePoint(() -> cryptoPriceRepository.findOldestPrice(crypto, resolvedFrom, resolvedTo, LIMIT_ONE), cryptoSymbol);
-        CryptoPricePoint newestPricePoint = fetchPricePoint(() -> cryptoPriceRepository.findNewestPrice(crypto, resolvedFrom, resolvedTo, LIMIT_ONE), cryptoSymbol);
-        CryptoPricePoint minPricePoint = fetchPricePoint(() -> cryptoPriceRepository.findMinPrice(crypto, resolvedFrom, resolvedTo, LIMIT_ONE), cryptoSymbol);
-        CryptoPricePoint maxPricePoint = fetchPricePoint(() -> cryptoPriceRepository.findMaxPrice(crypto, resolvedFrom, resolvedTo, LIMIT_ONE), cryptoSymbol);
+        CryptoPricePoint oldestPricePoint = fetchPricePoint(() -> cryptoPriceRepository.findPricesInRangeOrderedByTimestampAsc(crypto, resolvedFrom, resolvedTo, LIMIT_ONE), cryptoSymbol);
+        CryptoPricePoint newestPricePoint = fetchPricePoint(() -> cryptoPriceRepository.findPricesInRangeOrderedByTimestampDesc(crypto, resolvedFrom, resolvedTo, LIMIT_ONE), cryptoSymbol);
+        CryptoPricePoint minPricePoint = fetchPricePoint(() -> cryptoPriceRepository.findPricesInRangeOrderedByPriceAsc(crypto, resolvedFrom, resolvedTo, LIMIT_ONE), cryptoSymbol);
+        CryptoPricePoint maxPricePoint = fetchPricePoint(() -> cryptoPriceRepository.findPricesInRangeOrderedByPriceDesc(crypto, resolvedFrom, resolvedTo, LIMIT_ONE), cryptoSymbol);
 
         return new CryptoStats(crypto.getSymbol(), oldestPricePoint, newestPricePoint, minPricePoint, maxPricePoint);
     }
@@ -98,13 +98,13 @@ public class CryptoPriceService {
         Instant resolvedTo = (to != null) ? toEndInstant(to) : cryptoPriceRepository.findMaxTimestamp(crypto);
 
         CryptoPrice min = cryptoPriceRepository
-                .findMinPrice(crypto, resolvedFrom, resolvedTo, LIMIT_ONE)
+                .findPricesInRangeOrderedByPriceAsc(crypto, resolvedFrom, resolvedTo, LIMIT_ONE)
                 .stream()
                 .findFirst()
                 .orElse(null);
 
         CryptoPrice max = cryptoPriceRepository
-                .findMaxPrice(crypto, resolvedFrom, resolvedTo, LIMIT_ONE)
+                .findPricesInRangeOrderedByPriceDesc(crypto, resolvedFrom, resolvedTo, LIMIT_ONE)
                 .stream()
                 .findFirst()
                 .orElse(null);
