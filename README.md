@@ -179,12 +179,68 @@ mvn clean verify
 ```bash
 mvn spring-boot:run
 ```
+Or via the docker image (see Docker Support section).
 
 Swagger UI:
 
 ```
 http://localhost:8080/swagger-ui.html
 ```
+
+## Docker Support
+
+The application can be containerized using **two supported approaches**.
+
+### Spring Boot Buildpacks
+
+The preferred way to build a container image is using Spring Boot’s built-in
+support for **Cloud Native Buildpacks**.
+
+```bash
+./mvnw spring-boot:build-image
+```
+
+This command produces an optimized, layered OCI image without requiring a
+Dockerfile.
+
+It can be run with:
+
+```bash
+docker run -p 8080:8080 crypto-recommendation:0.0.1-SNAPSHOT
+```
+Note: The image tag reflects the project version and may change if the version in
+pom.xml is updated
+
+This approach is recommended because it:
+
+* follows Spring Boot’s official containerization strategy
+* produces secure and minimal base images
+* supports efficient layer caching
+* reduces long-term maintenance overhead
+
+---
+
+### Dockerfile (Alternative)
+
+For environments that require explicit control over the base image, JVM options,
+or OS-level dependencies, the application can also be containerized using a
+traditional Dockerfile.
+
+```bash
+docker build -t crypto-recommendation .
+```
+
+It can be run with:
+
+```bash
+docker run -p 8080:8080 crypto-recommendation
+```
+
+This approach may be preferred when:
+
+* a custom base image is required
+* additional OS-level packages must be installed
+* fine-grained JVM tuning is necessary
 
 ## Future Improvements
 
