@@ -1,7 +1,7 @@
 package com.xm.crypto_recommendation.repository;
 
-import com.xm.crypto_recommendation.domain.Crypto;
-import com.xm.crypto_recommendation.domain.CryptoPrice;
+import com.xm.crypto_recommendation.domain.entity.Crypto;
+import com.xm.crypto_recommendation.domain.entity.CryptoPrice;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

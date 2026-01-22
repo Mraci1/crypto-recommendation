@@ -1,7 +1,7 @@
 package com.xm.crypto_recommendation.controller;
 
-import com.xm.crypto_recommendation.domain.CryptoNormalizedRange;
-import com.xm.crypto_recommendation.domain.CryptoStats;
+import com.xm.crypto_recommendation.domain.dto.CryptoNormalizedRange;
+import com.xm.crypto_recommendation.domain.dto.CryptoStats;
 import com.xm.crypto_recommendation.service.CryptoPriceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;

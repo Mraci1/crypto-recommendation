@@ -1,7 +1,7 @@
 package com.xm.crypto_recommendation.csv_utils;
 
-import com.xm.crypto_recommendation.domain.Crypto;
-import com.xm.crypto_recommendation.domain.CryptoPrice;
+import com.xm.crypto_recommendation.domain.entity.Crypto;
+import com.xm.crypto_recommendation.domain.entity.CryptoPrice;
 import com.xm.crypto_recommendation.repository.CryptoPriceRepository;
 import com.xm.crypto_recommendation.repository.CryptoRepository;
 import jakarta.transaction.Transactional;

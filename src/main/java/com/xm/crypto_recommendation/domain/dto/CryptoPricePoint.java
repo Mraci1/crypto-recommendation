@@ -1,4 +1,4 @@
-package com.xm.crypto_recommendation.domain;
+package com.xm.crypto_recommendation.domain.dto;
 
 import java.math.BigDecimal;
 import java.time.Instant;

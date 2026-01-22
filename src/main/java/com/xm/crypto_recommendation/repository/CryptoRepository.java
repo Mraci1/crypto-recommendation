@@ -1,6 +1,6 @@
 package com.xm.crypto_recommendation.repository;
 
-import com.xm.crypto_recommendation.domain.Crypto;
+import com.xm.crypto_recommendation.domain.entity.Crypto;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

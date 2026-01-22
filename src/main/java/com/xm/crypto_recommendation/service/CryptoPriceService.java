@@ -1,10 +1,12 @@
 package com.xm.crypto_recommendation.service;
 
-import com.xm.crypto_recommendation.domain.Crypto;
-import com.xm.crypto_recommendation.domain.CryptoNormalizedRange;
-import com.xm.crypto_recommendation.domain.CryptoPrice;
-import com.xm.crypto_recommendation.domain.CryptoPricePoint;
-import com.xm.crypto_recommendation.domain.CryptoStats;
+import com.xm.crypto_recommendation.domain.entity.Crypto;
+import com.xm.crypto_recommendation.domain.dto.CryptoNormalizedRange;
+import com.xm.crypto_recommendation.domain.entity.CryptoPrice;
+import com.xm.crypto_recommendation.domain.dto.CryptoPricePoint;
+import com.xm.crypto_recommendation.domain.dto.CryptoStats;
+import com.xm.crypto_recommendation.exception.NoDataException;
+import com.xm.crypto_recommendation.exception.UnsupportedCryptoException;
 import com.xm.crypto_recommendation.repository.CryptoPriceRepository;
 import com.xm.crypto_recommendation.repository.CryptoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +27,7 @@ import java.util.function.Supplier;
 @Service
 public class CryptoPriceService {
 
-    private static final Pageable limitOne = PageRequest.of(0, 1);
+    private static final Pageable LIMIT_ONE = PageRequest.of(0, 1);
 
     private final CryptoRepository cryptoRepository;
     private final CryptoPriceRepository cryptoPriceRepository;
@@ -50,10 +52,10 @@ public class CryptoPriceService {
             );
         }
 
-        CryptoPricePoint oldestPricePoint = fetchPricePoint(() -> cryptoPriceRepository.findOldestPrice(crypto, resolvedFrom, resolvedTo, limitOne), cryptoSymbol);
-        CryptoPricePoint newestPricePoint = fetchPricePoint(() -> cryptoPriceRepository.findNewestPrice(crypto, resolvedFrom, resolvedTo, limitOne), cryptoSymbol);
-        CryptoPricePoint minPricePoint = fetchPricePoint(() -> cryptoPriceRepository.findMinPrice(crypto, resolvedFrom, resolvedTo, limitOne), cryptoSymbol);
-        CryptoPricePoint maxPricePoint = fetchPricePoint(() -> cryptoPriceRepository.findMaxPrice(crypto, resolvedFrom, resolvedTo, limitOne), cryptoSymbol);
+        CryptoPricePoint oldestPricePoint = fetchPricePoint(() -> cryptoPriceRepository.findOldestPrice(crypto, resolvedFrom, resolvedTo, LIMIT_ONE), cryptoSymbol);
+        CryptoPricePoint newestPricePoint = fetchPricePoint(() -> cryptoPriceRepository.findNewestPrice(crypto, resolvedFrom, resolvedTo, LIMIT_ONE), cryptoSymbol);
+        CryptoPricePoint minPricePoint = fetchPricePoint(() -> cryptoPriceRepository.findMinPrice(crypto, resolvedFrom, resolvedTo, LIMIT_ONE), cryptoSymbol);
+        CryptoPricePoint maxPricePoint = fetchPricePoint(() -> cryptoPriceRepository.findMaxPrice(crypto, resolvedFrom, resolvedTo, LIMIT_ONE), cryptoSymbol);
 
         return new CryptoStats(crypto.getSymbol(), oldestPricePoint, newestPricePoint, minPricePoint, maxPricePoint);
     }
@@ -96,13 +98,13 @@ public class CryptoPriceService {
         Instant resolvedTo = (to != null) ? toEndInstant(to) : cryptoPriceRepository.findMaxTimestamp(crypto);
 
         CryptoPrice min = cryptoPriceRepository
-                .findMinPrice(crypto, resolvedFrom, resolvedTo, limitOne)
+                .findMinPrice(crypto, resolvedFrom, resolvedTo, LIMIT_ONE)
                 .stream()
                 .findFirst()
                 .orElse(null);
 
         CryptoPrice max = cryptoPriceRepository
-                .findMaxPrice(crypto, resolvedFrom, resolvedTo, limitOne)
+                .findMaxPrice(crypto, resolvedFrom, resolvedTo, LIMIT_ONE)
                 .stream()
                 .findFirst()
                 .orElse(null);

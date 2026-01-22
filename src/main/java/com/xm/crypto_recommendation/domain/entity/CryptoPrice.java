@@ -1,4 +1,4 @@
-package com.xm.crypto_recommendation.domain;
+package com.xm.crypto_recommendation.domain.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
