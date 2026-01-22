@@ -25,9 +25,9 @@ public class RateLimitingFilter implements Filter {
 
     @Override
     public void doFilter(
-        ServletRequest request,
-        ServletResponse response,
-        FilterChain chain
+            ServletRequest request,
+            ServletResponse response,
+            FilterChain chain
     ) throws IOException, ServletException {
 
         HttpServletRequest httpRequest = (HttpServletRequest) request;
@@ -46,11 +46,11 @@ public class RateLimitingFilter implements Filter {
 
     private Bucket createNewBucket(String ip) {
         return Bucket.builder()
-            .addLimit(Bandwidth.builder()
-                .capacity(REQUESTS_PER_MINUTE)
-                .refillIntervally(REQUESTS_PER_MINUTE, Duration.ofMinutes(1))
-                .build())
-            .build();
+                .addLimit(Bandwidth.builder()
+                        .capacity(REQUESTS_PER_MINUTE)
+                        .refillIntervally(REQUESTS_PER_MINUTE, Duration.ofMinutes(1))
+                        .build())
+                .build();
     }
 
     private String extractClientIp(HttpServletRequest request) {

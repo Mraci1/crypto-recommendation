@@ -13,11 +13,11 @@ import java.time.Instant;
 
 @Entity
 @Table(
-    name = "crypto_price",
-    indexes = {
-        @Index(name = "idx_crypto_timestamp", columnList = "crypto_id, timestamp"),
-        @Index(name = "idx_crypto_price", columnList = "crypto_id, price")
-    }
+        name = "crypto_price",
+        indexes = {
+                @Index(name = "idx_crypto_timestamp", columnList = "crypto_id, timestamp"),
+                @Index(name = "idx_crypto_price", columnList = "crypto_id, price")
+        }
 )
 public class CryptoPrice {
 

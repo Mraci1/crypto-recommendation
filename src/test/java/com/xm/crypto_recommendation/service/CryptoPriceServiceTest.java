@@ -1,5 +1,6 @@
 package com.xm.crypto_recommendation.service;
 
+import com.xm.crypto_recommendation.domain.dto.CryptoNormalizedRange;
 import com.xm.crypto_recommendation.domain.dto.CryptoPricePoint;
 import com.xm.crypto_recommendation.domain.dto.CryptoStats;
 import com.xm.crypto_recommendation.domain.entity.Crypto;
@@ -19,14 +20,19 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -54,9 +60,8 @@ class CryptoPriceServiceTest {
     @MethodSource("symbolNormalizationProvider")
     void testSymbolNormalization(String symbol) {
         // Given
-        Crypto crypto = new Crypto(BTC);
-        given(cryptoRepository.findBySymbol(BTC)).willReturn(Optional.of(crypto));
-        mockPriceRepositoryWithDefaults(crypto);
+        given(cryptoRepository.findBySymbol(BTC)).willReturn(Optional.of(DEFAULT_CRYPTO));
+        mockPriceRepositoryWithDefaults();
         // When
         underTest.getCryptoStats(symbol, DEFAULT_FROM_DATE, DEFAULT_TO_DATE);
         // Then
@@ -66,37 +71,37 @@ class CryptoPriceServiceTest {
     @Test
     void testGetCryptoStats() {
         // Given
-        Crypto crypto = new Crypto(BTC);
-        given(cryptoRepository.findBySymbol(BTC)).willReturn(Optional.of(crypto));
-        mockPriceRepositoryWithDefaults(crypto);
+        given(cryptoRepository.findBySymbol(BTC)).willReturn(Optional.of(DEFAULT_CRYPTO));
+        mockPriceRepositoryWithDefaults();
         CryptoPricePoint expectedPricePoint = new CryptoPricePoint(DEFAULT_PRICE, DEFAULT_FROM);
         CryptoStats expectedStats = new CryptoStats(BTC, expectedPricePoint, expectedPricePoint, expectedPricePoint, expectedPricePoint);
         // When
-        CryptoStats cryptoStats = underTest.getCryptoStats(crypto.getSymbol(), DEFAULT_FROM_DATE, DEFAULT_TO_DATE);
+        CryptoStats cryptoStats = underTest.getCryptoStats(BTC, DEFAULT_FROM_DATE, DEFAULT_TO_DATE);
         // Then
-        verify(cryptoPriceRepository).findPricesInRangeOrderedByPriceDesc(crypto, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE);
-        verify(cryptoPriceRepository).findPricesInRangeOrderedByPriceAsc(crypto, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE);
-        verify(cryptoPriceRepository).findPricesInRangeOrderedByTimestampDesc(crypto, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE);
-        verify(cryptoPriceRepository).findPricesInRangeOrderedByTimestampAsc(crypto, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE);
-        assertEquals(cryptoStats, expectedStats);
+        verify(cryptoPriceRepository).findPricesInRangeOrderedByPriceDesc(DEFAULT_CRYPTO, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE);
+        verify(cryptoPriceRepository).findPricesInRangeOrderedByPriceAsc(DEFAULT_CRYPTO, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE);
+        verify(cryptoPriceRepository).findPricesInRangeOrderedByTimestampDesc(DEFAULT_CRYPTO, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE);
+        verify(cryptoPriceRepository).findPricesInRangeOrderedByTimestampAsc(DEFAULT_CRYPTO, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE);
+        assertEquals(expectedStats, cryptoStats);
     }
 
     @Test
     void testGetCryptoStatsWhenFromAndToIsNull() {
         // Given
-        Crypto crypto = new Crypto(BTC);
-        given(cryptoRepository.findBySymbol(BTC)).willReturn(Optional.of(crypto));
-        mockPriceRepositoryWithDefaults(crypto);
+        given(cryptoRepository.findBySymbol(BTC)).willReturn(Optional.of(DEFAULT_CRYPTO));
+        mockPriceRepositoryWithDefaults();
+        given(cryptoPriceRepository.findMaxTimestamp(DEFAULT_CRYPTO)).willReturn(DEFAULT_TO);
+        given(cryptoPriceRepository.findMinTimestamp(DEFAULT_CRYPTO)).willReturn(DEFAULT_FROM);
         CryptoPricePoint expectedPricePoint = new CryptoPricePoint(DEFAULT_PRICE, DEFAULT_FROM);
         CryptoStats expectedStats = new CryptoStats(BTC, expectedPricePoint, expectedPricePoint, expectedPricePoint, expectedPricePoint);
         // When
-        CryptoStats cryptoStats = underTest.getCryptoStats(crypto.getSymbol(), null, null);
+        CryptoStats cryptoStats = underTest.getCryptoStats(BTC, null, null);
         // Then
-        verify(cryptoPriceRepository).findPricesInRangeOrderedByPriceDesc(crypto, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE);
-        verify(cryptoPriceRepository).findPricesInRangeOrderedByPriceAsc(crypto, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE);
-        verify(cryptoPriceRepository).findPricesInRangeOrderedByTimestampDesc(crypto, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE);
-        verify(cryptoPriceRepository).findPricesInRangeOrderedByTimestampAsc(crypto, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE);
-        assertEquals(cryptoStats, expectedStats);
+        verify(cryptoPriceRepository).findPricesInRangeOrderedByPriceDesc(DEFAULT_CRYPTO, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE);
+        verify(cryptoPriceRepository).findPricesInRangeOrderedByPriceAsc(DEFAULT_CRYPTO, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE);
+        verify(cryptoPriceRepository).findPricesInRangeOrderedByTimestampDesc(DEFAULT_CRYPTO, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE);
+        verify(cryptoPriceRepository).findPricesInRangeOrderedByTimestampAsc(DEFAULT_CRYPTO, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE);
+        assertEquals(expectedStats, cryptoStats);
     }
 
     @Test
@@ -122,26 +127,155 @@ class CryptoPriceServiceTest {
     @Test
     void testGetCryptoStatsWhenNoPricesInRange() {
         // Given
-        Crypto crypto = new Crypto(BTC);
-        given(cryptoRepository.findBySymbol(BTC)).willReturn(Optional.of(crypto));
+        given(cryptoRepository.findBySymbol(BTC)).willReturn(Optional.of(DEFAULT_CRYPTO));
         // When / Then
-        assertThrows(NoDataException.class, () -> underTest.getCryptoStats(crypto.getSymbol(), DEFAULT_FROM_DATE, DEFAULT_TO_DATE));
+        assertThrows(NoDataException.class, () -> underTest.getCryptoStats(BTC, DEFAULT_FROM_DATE, DEFAULT_TO_DATE));
+    }
+
+    @Test
+    void testGetCryptosByNormalizedRange() {
+        // Given
+        Crypto crypto = new Crypto("ETH");
+        given(cryptoRepository.findAll()).willReturn(List.of(DEFAULT_CRYPTO, crypto));
+        BigDecimal btcMax = BigDecimal.valueOf(200.0);
+        BigDecimal btcMin = BigDecimal.valueOf(100.0);
+        BigDecimal ethMax = BigDecimal.valueOf(654.321);
+        BigDecimal ethMin = BigDecimal.valueOf(123.456);
+        given(cryptoPriceRepository.findPricesInRangeOrderedByPriceDesc(DEFAULT_CRYPTO, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE))
+                .willReturn(List.of(new CryptoPrice(DEFAULT_CRYPTO, DEFAULT_FROM, btcMax)));
+        given(cryptoPriceRepository.findPricesInRangeOrderedByPriceAsc(DEFAULT_CRYPTO, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE))
+                .willReturn(List.of(new CryptoPrice(DEFAULT_CRYPTO, DEFAULT_FROM, btcMin)));
+        given(cryptoPriceRepository.findPricesInRangeOrderedByPriceDesc(crypto, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE))
+                .willReturn(List.of(new CryptoPrice(crypto, DEFAULT_FROM, ethMax)));
+        given(cryptoPriceRepository.findPricesInRangeOrderedByPriceAsc(crypto, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE))
+                .willReturn(List.of(new CryptoPrice(crypto, DEFAULT_FROM, ethMin)));
+        // When
+        List<CryptoNormalizedRange> cryptosByNormalizedRange = underTest.getCryptosByNormalizedRange(DEFAULT_FROM_DATE, DEFAULT_TO_DATE);
+        // Then
+        verify(cryptoRepository).findAll();
+        assertEquals(2, cryptosByNormalizedRange.size());
+        assertEquals("ETH", cryptosByNormalizedRange.get(0).symbol());
+        assertEquals("BTC", cryptosByNormalizedRange.get(1).symbol());
+        assertEquals(ethMax.subtract(ethMin).divide(ethMin, 8, RoundingMode.HALF_UP), cryptosByNormalizedRange.get(0).normalizedRange());
+        assertEquals(btcMax.subtract(btcMin).divide(btcMin, 8, RoundingMode.HALF_UP), cryptosByNormalizedRange.get(1).normalizedRange());
+    }
+
+    @Test
+    void testGetCryptosByNormalizedRangeWhenToAndFromIsNull() {
+        // Given
+        Crypto crypto = new Crypto("ETH");
+        given(cryptoRepository.findAll()).willReturn(List.of(DEFAULT_CRYPTO, crypto));
+        given(cryptoPriceRepository.findMaxTimestamp(any())).willReturn(DEFAULT_TO);
+        given(cryptoPriceRepository.findMinTimestamp(any())).willReturn(DEFAULT_FROM);
+        // When
+        List<CryptoNormalizedRange> cryptosByNormalizedRange = underTest.getCryptosByNormalizedRange(null, null);
+        // Then
+        verify(cryptoRepository).findAll();
+        verify(cryptoPriceRepository, times(2)).findMinTimestamp(any());
+        verify(cryptoPriceRepository, times(2)).findMaxTimestamp(any());
+        verify(cryptoPriceRepository, times(2)).findPricesInRangeOrderedByPriceAsc(any(), eq(DEFAULT_FROM), eq(DEFAULT_TO), eq(LIMIT_ONE));
+        verify(cryptoPriceRepository, times(2)).findPricesInRangeOrderedByPriceDesc(any(), eq(DEFAULT_FROM), eq(DEFAULT_TO), eq(LIMIT_ONE));
+    }
+
+    @Test
+    void testGetCryptosByNormalizedRangeWhenOneMinIsZero() {
+        // Given
+        Crypto crypto = new Crypto("ETH");
+        given(cryptoRepository.findAll()).willReturn(List.of(DEFAULT_CRYPTO, crypto));
+        BigDecimal btcMax = BigDecimal.valueOf(200.0);
+        BigDecimal btcMin = BigDecimal.valueOf(100.0);
+        BigDecimal ethMax = BigDecimal.valueOf(654.321);
+        BigDecimal ethMin = BigDecimal.valueOf(0);
+        given(cryptoPriceRepository.findPricesInRangeOrderedByPriceDesc(DEFAULT_CRYPTO, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE))
+                .willReturn(List.of(new CryptoPrice(DEFAULT_CRYPTO, DEFAULT_FROM, btcMax)));
+        given(cryptoPriceRepository.findPricesInRangeOrderedByPriceAsc(DEFAULT_CRYPTO, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE))
+                .willReturn(List.of(new CryptoPrice(DEFAULT_CRYPTO, DEFAULT_FROM, btcMin)));
+        given(cryptoPriceRepository.findPricesInRangeOrderedByPriceDesc(crypto, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE))
+                .willReturn(List.of(new CryptoPrice(crypto, DEFAULT_FROM, ethMax)));
+        given(cryptoPriceRepository.findPricesInRangeOrderedByPriceAsc(crypto, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE))
+                .willReturn(List.of(new CryptoPrice(crypto, DEFAULT_FROM, ethMin)));
+        // When
+        List<CryptoNormalizedRange> cryptosByNormalizedRange = underTest.getCryptosByNormalizedRange(DEFAULT_FROM_DATE, DEFAULT_TO_DATE);
+        // Then
+        verify(cryptoRepository).findAll();
+        assertEquals(1, cryptosByNormalizedRange.size());
+        assertEquals("BTC", cryptosByNormalizedRange.get(0).symbol());
+        assertEquals(btcMax.subtract(btcMin).divide(btcMin, 8, RoundingMode.HALF_UP), cryptosByNormalizedRange.get(0).normalizedRange());
+    }
+
+    @Test
+    void testGetCryptosByNormalizedRangeWhenOneMinAndMaxIsNull() {
+        // Given
+        Crypto crypto = new Crypto("ETH");
+        given(cryptoRepository.findAll()).willReturn(List.of(DEFAULT_CRYPTO, crypto));
+        BigDecimal ethMax = BigDecimal.valueOf(654.321);
+        BigDecimal ethMin = BigDecimal.valueOf(123.456);
+        given(cryptoPriceRepository.findPricesInRangeOrderedByPriceDesc(DEFAULT_CRYPTO, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE))
+                .willReturn(Collections.emptyList());
+        given(cryptoPriceRepository.findPricesInRangeOrderedByPriceAsc(DEFAULT_CRYPTO, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE))
+                .willReturn(Collections.emptyList());
+        given(cryptoPriceRepository.findPricesInRangeOrderedByPriceDesc(crypto, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE))
+                .willReturn(List.of(new CryptoPrice(crypto, DEFAULT_FROM, ethMax)));
+        given(cryptoPriceRepository.findPricesInRangeOrderedByPriceAsc(crypto, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE))
+                .willReturn(List.of(new CryptoPrice(crypto, DEFAULT_FROM, ethMin)));
+        // When
+        List<CryptoNormalizedRange> cryptosByNormalizedRange = underTest.getCryptosByNormalizedRange(DEFAULT_FROM_DATE, DEFAULT_TO_DATE);
+        // Then
+        verify(cryptoRepository).findAll();
+        assertEquals(1, cryptosByNormalizedRange.size());
+        assertEquals("ETH", cryptosByNormalizedRange.get(0).symbol());
+        assertEquals(ethMax.subtract(ethMin).divide(ethMin, 8, RoundingMode.HALF_UP), cryptosByNormalizedRange.get(0).normalizedRange());
+    }
+
+    @Test
+    void testGetHighestNormalizedRangeForDay() {
+        // Given
+        Crypto crypto = new Crypto("ETH");
+        given(cryptoRepository.findAll()).willReturn(List.of(DEFAULT_CRYPTO, crypto));
+        given(cryptoPriceRepository.findPricesInRangeOrderedByPriceDesc(eq(DEFAULT_CRYPTO), any(), any(), any())).willReturn(List.of(
+                new CryptoPrice(DEFAULT_CRYPTO, DEFAULT_FROM, BigDecimal.valueOf(400))
+        ));
+        given(cryptoPriceRepository.findPricesInRangeOrderedByPriceAsc(eq(DEFAULT_CRYPTO), any(), any(), any())).willReturn(List.of(
+                new CryptoPrice(DEFAULT_CRYPTO, DEFAULT_FROM, BigDecimal.valueOf(200))
+        ));
+        given(cryptoPriceRepository.findPricesInRangeOrderedByPriceDesc(eq(crypto), any(), any(), any())).willReturn(List.of(
+                new CryptoPrice(crypto, DEFAULT_FROM, BigDecimal.valueOf(300))
+        ));
+        given(cryptoPriceRepository.findPricesInRangeOrderedByPriceAsc(eq(crypto), any(), any(), any())).willReturn(List.of(
+                new CryptoPrice(crypto, DEFAULT_FROM, BigDecimal.valueOf(100))
+        ));
+        // When
+        CryptoNormalizedRange highestNormalizedRange = underTest.getHighestNormalizedRangeForDay(DEFAULT_FROM_DATE);
+        // Then
+        assertEquals("ETH", highestNormalizedRange.symbol());
+        BigDecimal expectedNormalizedRange = BigDecimal.valueOf(300 - 100)
+                .divide(BigDecimal.valueOf(100), 8, RoundingMode.HALF_UP);
+        assertEquals(expectedNormalizedRange, highestNormalizedRange.normalizedRange());
+
+    }
+
+    @Test
+    void testGetHighestNormalizedRangeForDayWhenNoDataIsAvailable() {
+        // Given
+        Crypto crypto = new Crypto("ETH");
+        given(cryptoRepository.findAll()).willReturn(List.of(DEFAULT_CRYPTO, crypto));
+
+        // When / Then
+        assertThrows(NoDataException.class, () -> underTest.getHighestNormalizedRangeForDay(DEFAULT_FROM_DATE));
     }
 
     private static String[] symbolNormalizationProvider() {
         return new String[]{"btc", "BtC", "BTC"};
     }
 
-    private void mockPriceRepositoryWithDefaults(Crypto crypto) {
+    private void mockPriceRepositoryWithDefaults() {
         given(cryptoPriceRepository.findPricesInRangeOrderedByPriceDesc(
-                crypto, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE)).willReturn(List.of(DEFAULT_CRYPTO_PRICE));
+                DEFAULT_CRYPTO, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE)).willReturn(List.of(DEFAULT_CRYPTO_PRICE));
         given(cryptoPriceRepository.findPricesInRangeOrderedByPriceAsc(
-                crypto, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE)).willReturn(List.of(DEFAULT_CRYPTO_PRICE));
+                DEFAULT_CRYPTO, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE)).willReturn(List.of(DEFAULT_CRYPTO_PRICE));
         given(cryptoPriceRepository.findPricesInRangeOrderedByTimestampDesc(
-                crypto, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE)).willReturn(List.of(DEFAULT_CRYPTO_PRICE));
+                DEFAULT_CRYPTO, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE)).willReturn(List.of(DEFAULT_CRYPTO_PRICE));
         given(cryptoPriceRepository.findPricesInRangeOrderedByTimestampAsc(
-                crypto, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE)).willReturn(List.of(DEFAULT_CRYPTO_PRICE));
-        given(cryptoPriceRepository.findMaxTimestamp(crypto)).willReturn(DEFAULT_TO);
-        given(cryptoPriceRepository.findMinTimestamp(crypto)).willReturn(DEFAULT_FROM);
+                DEFAULT_CRYPTO, DEFAULT_FROM, DEFAULT_TO, LIMIT_ONE)).willReturn(List.of(DEFAULT_CRYPTO_PRICE));
     }
 }

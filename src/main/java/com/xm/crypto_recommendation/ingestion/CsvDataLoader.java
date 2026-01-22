@@ -1,4 +1,4 @@
-package com.xm.crypto_recommendation.csv_utils;
+package com.xm.crypto_recommendation.ingestion;
 
 import com.xm.crypto_recommendation.domain.entity.Crypto;
 import com.xm.crypto_recommendation.domain.entity.CryptoPrice;
@@ -8,7 +8,6 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +18,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
-@Profile("!test")
 public class CsvDataLoader implements ApplicationRunner {
 
     private final CryptoRepository cryptoRepository;
@@ -30,8 +28,8 @@ public class CsvDataLoader implements ApplicationRunner {
 
     @Autowired
     public CsvDataLoader(
-        CryptoRepository cryptoRepository, CryptoPriceRepository priceRepository,
-        CsvResourceLoader resourceLoader, CsvParser csvParser
+            CryptoRepository cryptoRepository, CryptoPriceRepository priceRepository,
+            CsvResourceLoader resourceLoader, CsvParser csvParser
     ) {
         this.cryptoRepository = cryptoRepository;
         this.priceRepository = priceRepository;
@@ -50,15 +48,15 @@ public class CsvDataLoader implements ApplicationRunner {
                 Crypto crypto = cryptoRepository.findBySymbol(symbol).orElseGet(() -> cryptoRepository.save(new Crypto(symbol)));
 
                 List<CryptoPrice> cryptoPrices = records.stream()
-                    .map(cryptoPriceCsvRecord ->
-                        new CryptoPrice(crypto, Instant.ofEpochMilli(cryptoPriceCsvRecord.getTimestamp()), cryptoPriceCsvRecord.getPrice()))
-                    .collect(Collectors.toList());
+                        .map(cryptoPriceCsvRecord ->
+                                new CryptoPrice(crypto, Instant.ofEpochMilli(cryptoPriceCsvRecord.getTimestamp()), cryptoPriceCsvRecord.getPrice()))
+                        .collect(Collectors.toList());
 
                 priceRepository.saveAll(cryptoPrices);
 
             } catch (IOException e) {
                 throw new IllegalStateException(
-                    "Failed to read CSV: " + resource.getFilename(), e
+                        "Failed to read CSV: " + resource.getFilename(), e
                 );
             }
         });

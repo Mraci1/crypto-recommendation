@@ -1,10 +1,10 @@
 package com.xm.crypto_recommendation.service;
 
-import com.xm.crypto_recommendation.domain.entity.Crypto;
 import com.xm.crypto_recommendation.domain.dto.CryptoNormalizedRange;
-import com.xm.crypto_recommendation.domain.entity.CryptoPrice;
 import com.xm.crypto_recommendation.domain.dto.CryptoPricePoint;
 import com.xm.crypto_recommendation.domain.dto.CryptoStats;
+import com.xm.crypto_recommendation.domain.entity.Crypto;
+import com.xm.crypto_recommendation.domain.entity.CryptoPrice;
 import com.xm.crypto_recommendation.exception.NoDataException;
 import com.xm.crypto_recommendation.exception.UnsupportedCryptoException;
 import com.xm.crypto_recommendation.repository.CryptoPriceRepository;
@@ -21,6 +21,7 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -39,7 +40,7 @@ public class CryptoPriceService {
     }
 
     public CryptoStats getCryptoStats(String cryptoSymbol, LocalDate from, LocalDate to) {
-        String normalizedSymbol = cryptoSymbol.toUpperCase();
+        String normalizedSymbol = cryptoSymbol.toUpperCase(Locale.ROOT);
         Crypto crypto = cryptoRepository.findBySymbol(normalizedSymbol).orElseThrow(() ->
                 new UnsupportedCryptoException(normalizedSymbol));
 

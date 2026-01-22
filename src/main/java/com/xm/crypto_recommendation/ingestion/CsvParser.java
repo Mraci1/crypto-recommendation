@@ -1,4 +1,4 @@
-package com.xm.crypto_recommendation.csv_utils;
+package com.xm.crypto_recommendation.ingestion;
 
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
@@ -25,8 +25,8 @@ public class CsvParser {
 
             MappingIterator<CryptoPriceCsvRecord> iterator =
                     csvMapper.readerFor(CryptoPriceCsvRecord.class)
-                             .with(schema)
-                             .readValues(inputStream);
+                            .with(schema)
+                            .readValues(inputStream);
 
             return iterator.readAll();
         } catch (IOException e) {

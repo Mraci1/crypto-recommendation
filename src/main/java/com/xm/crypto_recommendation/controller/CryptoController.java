@@ -14,7 +14,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/crypto")
+@RequestMapping("/api/cryptos")
 public class CryptoController {
 
     private final CryptoPriceService cryptoPriceService;

@@ -1,4 +1,4 @@
-package com.xm.crypto_recommendation.csv_utils;
+package com.xm.crypto_recommendation.ingestion;
 
 import java.math.BigDecimal;
 
