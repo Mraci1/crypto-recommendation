@@ -1,3 +1,6 @@
 spring:
   application:
     name: crypto-recommendation
+
+rate-limit:
+  requests-per-minute: 60

@@ -9,7 +9,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
+@SpringBootTest(properties = {"rate-limit.requests-per-minute=3"})
 @AutoConfigureMockMvc
 class RateLimitingFilterIntegrationTest {
 
@@ -18,7 +18,7 @@ class RateLimitingFilterIntegrationTest {
 
     @Test
     void rateLimitIsApplied() throws Exception {
-        for (int i = 0; i < 60; i++) {
+        for (int i = 0; i < 3; i++) {
             mockMvc.perform(get("/api/cryptos/BTC/stats"))
                     .andExpect(status().isOk());
         }

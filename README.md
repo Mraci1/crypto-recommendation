@@ -1,4 +1,4 @@
-# 📈 Crypto Recommendation Service
+# Crypto Recommendation Service
 
 ## Overview
 
@@ -8,7 +8,7 @@ The application is built using **Spring Boot**, follows a **layered architecture
 
 ## Features & Requirements Coverage
 
-### ✅ Implemented Functional Requirements
+### Implemented Functional Requirements
 
 - Reads all crypto prices from CSV files on application startup
 - Calculates **oldest, newest, minimum, and maximum** prices for each crypto
@@ -16,7 +16,7 @@ The application is built using **Spring Boot**, follows a **layered architecture
 - Exposes an endpoint returning **stats for a requested crypto**
 - Exposes an endpoint returning the **crypto with the highest normalized range for a given day**
 
-### 🔢 Normalized Range
+### Normalized Range
 
 The normalized range is calculated as:
 
@@ -25,6 +25,17 @@ The normalized range is calculated as:
 ```
 
 This allows fair comparison between cryptos with different absolute price scales.
+
+### Rate Limiting
+
+The API is protected by a simple IP-based rate limiting filter implemented using Bucket4j.
+
+- Limit: **60 requests per minute per client IP**
+- Purpose: protect the service from accidental or abusive traffic
+- Scope: applies to all API endpoints
+
+This solution is intentionally simple and in-memory, suitable for a single-instance setup.
+In a production environment, a distributed rate limiter (e.g. Redis-backed) would be preferred.
 
 ## API Endpoints
 
@@ -36,7 +47,7 @@ After starting the application, open:
 http://localhost:8080/swagger-ui.html
 ```
 
-### 1️⃣ Get crypto statistics
+### Get crypto statistics
 
 ```
 GET /api/cryptos/{symbol}/stats
@@ -60,7 +71,7 @@ Returns:
 * minimum price
 * maximum price
 
-### 2️⃣ Get cryptos sorted by normalized range
+### Get cryptos sorted by normalized range
 
 ```
 GET /api/cryptos/normalized-range
@@ -68,7 +79,7 @@ GET /api/cryptos/normalized-range
 
 Returns all supported cryptos sorted **descending** by normalized range.
 
-### 3️⃣ Get crypto with highest normalized range for a day
+### Get crypto with highest normalized range for a day
 
 ```
 GET /api/cryptos/highest-normalized-range?date=2023-01-01
@@ -197,7 +208,7 @@ The preferred way to build a container image is using Spring Boot’s built-in
 support for **Cloud Native Buildpacks**.
 
 ```bash
-./mvnw spring-boot:build-image
+mvn spring-boot:build-image
 ```
 
 This command produces an optimized, layered OCI image without requiring a

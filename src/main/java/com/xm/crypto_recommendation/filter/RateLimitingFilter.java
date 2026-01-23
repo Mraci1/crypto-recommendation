@@ -9,6 +9,7 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -44,7 +45,13 @@ public class RateLimitingFilter implements Filter {
      */
     private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
 
-    private static final int REQUESTS_PER_MINUTE = 60;
+    private final int requestsPerMinute;
+
+    public RateLimitingFilter(
+        @Value("${rate-limit.requests-per-minute:60}") int requestsPerMinute
+    ) {
+        this.requestsPerMinute = requestsPerMinute;
+    }
 
     /**
      * Applies rate limiting before allowing the request to proceed.
@@ -86,8 +93,8 @@ public class RateLimitingFilter implements Filter {
     private Bucket createNewBucket(String ip) {
         return Bucket.builder()
                 .addLimit(Bandwidth.builder()
-                        .capacity(REQUESTS_PER_MINUTE)
-                        .refillIntervally(REQUESTS_PER_MINUTE, Duration.ofMinutes(1))
+                        .capacity(requestsPerMinute)
+                        .refillIntervally(requestsPerMinute, Duration.ofMinutes(1))
                         .build())
                 .build();
     }
